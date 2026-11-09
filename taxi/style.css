@@ -1,0 +1,216 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+  background: #f4f6fb;
+  color: #22313f;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 24px;
+  background: linear-gradient(90deg, #1f3b73, #2b6fb3);
+  color: #fff;
+  flex-wrap: wrap;
+}
+.brand { font-size: 20px; font-weight: 700; }
+.brand small { font-size: 12px; font-weight: 400; opacity: .85; margin-left: 8px; }
+.loginbar, .who { display: flex; align-items: center; gap: 8px; }
+input, select {
+  padding: 6px 8px;
+  border: 1px solid #ccd6e0;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #fff;
+  color: #22313f;
+}
+button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #2b6fb3;
+  background: #fff;
+  color: #2b6fb3;
+  cursor: pointer;
+  font-size: 13px;
+}
+button.primary { background: #2b6fb3; color: #fff; }
+button.ghost { border-color: #d7dee8; color: #3d4b5c; }
+button:hover { opacity: .9; }
+main { max-width: 1240px; margin: 18px auto 60px; padding: 0 18px; }
+.tip {
+  background: #fff8e6;
+  border: 1px solid #f0d9a8;
+  color: #8a6d3b;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+.panel h2 { font-size: 18px; margin: 12px 0 10px; }
+.card {
+  background: #fff;
+  border: 1px solid #e3e8f0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 2px rgba(20, 40, 80, .04);
+}
+.card h3 { font-size: 15px; margin: 4px 0 10px; display: flex; align-items: center; gap: 10px; }
+.row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.row label { font-size: 13px; color: #56636f; }
+.muted { color: #8b98a6; font-size: 12px; }
+.strong { font-weight: 700; color: #1f3b73; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #eef1f6; padding: 7px 8px; text-align: left; }
+th { background: #f7f9fc; color: #44546a; font-weight: 600; white-space: nowrap; }
+tbody tr:hover { background: #f9fbfe; }
+td.actions button { padding: 3px 8px; font-size: 12px; margin-right: 4px; }
+.tabs { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.tab { background: #eef2f8; border-color: #dbe3ee; }
+.tab.active { background: #2b6fb3; color: #fff; border-color: #2b6fb3; }
+.badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  background: #eaf2fb;
+  color: #2b6fb3;
+}
+.badge.done { background: #e8f7ee; color: #1e8449; }
+.badge.cancel { background: #fdecec; color: #c0392b; }
+
+/* 操作列固定在右侧，窗口较窄时也不会被裁掉 */
+td.actions, th.actions { position: sticky; right: 0; background: #fff; box-shadow: -6px 0 8px rgba(20,40,80,.06); }
+th.actions { background: #f7f9fc; }
+@media (max-width: 1500px) {
+  table { font-size: 12.5px; }
+  th, td { padding: 6px 6px; }
+}
+
+/* 窄窗口下表格在卡片内部横向滚动，页面本身不产生横向滚动条 */
+main { max-width: none; width: auto; }
+.card { overflow-x: auto; }
+header { flex-wrap: wrap; }
+
+@media (max-width: 1280px) {
+  header { padding: 10px 14px; }
+  .brand { font-size: 17px; }
+  .brand small { display: none; }
+  .loginbar select { width: 86px; }
+  .loginbar input { width: 150px; }
+  main { padding: 0 12px; margin-top: 12px; }
+  .card { padding: 10px 12px; }
+  table { font-size: 12px; }
+  th, td { padding: 5px 6px; }
+  .row { gap: 8px; }
+}
+
+/* ================= 按钮交互效果 + 悬停气泡 ================= */
+button { position: relative; overflow: hidden; transition: transform .12s ease,
+         box-shadow .16s ease, background .16s ease, color .16s ease; }
+button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(43,111,179,.22); }
+button:active { transform: translateY(0) scale(.96); box-shadow: 0 1px 3px rgba(43,111,179,.35); }
+button.primary:hover { background: #3a86cf; border-color: #3a86cf; }
+button.ghost:hover { background: #eef4fb; }
+button:focus-visible { outline: 2px solid #7fb3e0; outline-offset: 2px; }
+.card { transition: box-shadow .2s ease, transform .2s ease; }
+.card:hover { box-shadow: 0 6px 18px rgba(20,40,80,.09); }
+.badge { transition: transform .15s ease; }
+tbody tr:hover .badge { transform: scale(1.06); }
+
+/* 点击涟漪 */
+.ripple { position: absolute; border-radius: 50%; transform: scale(0);
+          background: rgba(255,255,255,.55); pointer-events: none;
+          animation: rippleGo .5s ease-out forwards; }
+button.ghost .ripple, button:not(.primary) .ripple { background: rgba(43,111,179,.22); }
+@keyframes rippleGo { to { transform: scale(2.6); opacity: 0; } }
+
+/* 悬停气泡提示（JS 定位，挂到 body 上，避免被表格裁剪） */
+#tooltip {
+  position: fixed; z-index: 9999; max-width: 280px; padding: 7px 11px;
+  border-radius: 7px; background: rgba(26,38,56,.96); color: #fff;
+  font-size: 12.5px; line-height: 1.5; pointer-events: none;
+  opacity: 0; transform: translateY(5px) scale(.98);
+  transition: opacity .16s ease, transform .16s ease;
+  box-shadow: 0 6px 18px rgba(10,25,45,.28); white-space: nowrap;
+}
+#tooltip.show { opacity: 1; transform: translateY(0) scale(1); }
+#tooltip::after {
+  content: ""; position: absolute; left: var(--arrow-x, 50%); bottom: -5px;
+  width: 10px; height: 10px; background: rgba(26,38,56,.96);
+  transform: translateX(-50%) rotate(45deg); border-radius: 2px;
+}
+#tooltip.below::after { bottom: auto; top: -5px; }
+
+/* ================= 使用教程页 ================= */
+.nav { display: flex; gap: 8px; }
+.nav button { border-color: rgba(255,255,255,.45); color: #fff; background: rgba(255,255,255,.10); }
+.nav button:hover { background: rgba(255,255,255,.22); box-shadow: 0 4px 12px rgba(0,0,0,.18); }
+.hero { display: grid; grid-template-columns: 1.25fr 1fr; gap: 18px; align-items: stretch;
+        background: linear-gradient(120deg, #eef4fc, #f7fbff);
+        border: 1px solid #dbe6f4; border-radius: 14px; padding: 22px 24px; margin-bottom: 16px; }
+.hero h1 { margin: 0 0 8px; font-size: 22px; color: #1f3b73; }
+.hero-sub { margin: 0 0 14px; color: #4f6072; line-height: 1.7; font-size: 13.5px; }
+.hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.kpis { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.kpis li { background: #fff; border: 1px solid #e3ebf6; border-radius: 10px; padding: 12px 10px;
+           text-align: center; transition: transform .15s ease, box-shadow .15s ease; }
+.kpis li:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(43,111,179,.14); }
+.kpis b { display: block; font-size: 20px; color: #2b6fb3; }
+.kpis span { font-size: 12px; color: #7b8a99; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 1100px) { .hero, .grid2 { grid-template-columns: 1fr; } }
+
+.steps { list-style: none; margin: 0; padding: 0; }
+.steps li { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px dashed #e6edf6; }
+.steps li:last-child { border-bottom: 0; }
+.steps .dot { width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%; background: #2b6fb3;
+              color: #fff; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+.steps b { font-size: 13.5px; color: #22313f; }
+.steps p { margin: 3px 0 0; font-size: 12.5px; color: #5a6b7c; line-height: 1.6; }
+
+.flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 6px 0 10px; }
+.flow i { color: #9fb3c8; font-style: normal; }
+.chip { padding: 5px 12px; border-radius: 999px; font-size: 12.5px; border: 1px solid transparent;
+        cursor: default; transition: transform .15s ease, box-shadow .15s ease; }
+.chip:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(43,111,179,.18); }
+.chip.wait { background: #eef2f8; color: #44546a; border-color: #dbe3ee; }
+.chip.accept { background: #eaf2fb; color: #2b6fb3; border-color: #cfe1f5; }
+.chip.arrive { background: #fff6e5; color: #a06a12; border-color: #f3e0b8; }
+.chip.trip { background: #f1ecfb; color: #6c3fb5; border-color: #ded0f5; }
+.chip.done { background: #e8f7ee; color: #1e8449; border-color: #c8ebd6; }
+
+.rules { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+@media (max-width: 1100px) { .rules { grid-template-columns: 1fr; } }
+.rule { background: #f8fbff; border: 1px solid #e3ebf6; border-radius: 10px; padding: 10px 12px; }
+.rule b { display: block; font-size: 12.5px; color: #2b6fb3; margin-bottom: 4px; }
+.rule span { font-size: 12.5px; color: #55677a; line-height: 1.6; }
+
+.formula { background: #f4f8fd; border-left: 3px solid #2b6fb3; padding: 8px 12px; border-radius: 0 8px 8px 0;
+           font-size: 12.5px; color: #33506b; line-height: 1.7; margin: 0 0 8px; }
+table.mini { font-size: 12.5px; }
+table.mini td, table.mini th { padding: 6px 6px; }
+details { border-bottom: 1px dashed #e6edf6; padding: 8px 0; }
+details:last-of-type { border-bottom: 0; }
+summary { cursor: pointer; font-size: 13px; color: #22313f; font-weight: 600; }
+summary:hover { color: #2b6fb3; }
+details p { margin: 6px 0 0; font-size: 12.5px; color: #5a6b7c; line-height: 1.7; }
+
+.tips-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+@media (max-width: 1100px) { .tips-grid { grid-template-columns: repeat(2, 1fr); } }
+.tipitem { display: flex; gap: 10px; background: #f8fbff; border: 1px solid #e6eef8; border-radius: 10px;
+           padding: 10px 12px; transition: transform .15s ease, box-shadow .15s ease; }
+.tipitem:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(43,111,179,.12); }
+.tipitem .ico { font-size: 18px; line-height: 1.2; }
+.tipitem b { font-size: 12.5px; }
+.tipitem p { margin: 3px 0 0; font-size: 12px; color: #5a6b7c; line-height: 1.6; }
+footer { text-align: center; color: #8b98a6; font-size: 12px; padding: 18px 10px 30px; line-height: 1.8; }
+
+.demo-banner { background: #fff8e6; border: 1px solid #f0d9a8; color: #7a5c1e; border-radius: 10px;
+  padding: 10px 14px; font-size: 12.5px; line-height: 1.7; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.demo-banner b { color: #a06a12; }
+.demo-banner button { margin-left: auto; }
+.demo-banner a.link { color: #2b6fb3; text-decoration: none; font-size: 12.5px; }

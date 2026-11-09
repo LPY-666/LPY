@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>城市网约车平台（在线演示） · 李沛业</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="brand">🚕 城市网约车平台 <small>数据库原理 · 实验八（打车系统）</small></div>
+  <nav class="nav">
+    <button class="ghost" data-tip="查看系统概览、操作流程、计价规则与常见问题" onclick="showPanel('guide')">使用教程</button>
+    <button class="ghost" data-tip="回到当前账号的工作台（需先登录）" onclick="backToWork()">工作台</button>
+  </nav>
+  <div class="loginbar" id="loginbar">
+    <select id="role" data-tip="选择登录身份：乘客 / 司机 / 管理员">
+      <option value="乘客">乘客</option>
+      <option value="司机">司机</option>
+      <option value="管理员">管理员</option>
+    </select>
+    <input id="account" placeholder="手机号 / admin" value="13800000001"
+           data-tip="乘客和司机用注册手机号，管理员用 admin">
+    <input id="pwd" type="password" placeholder="口令" value="123456"
+           data-tip="乘客/司机初始口令 123456；管理员 admin123">
+    <button class="primary" data-tip="乘客/司机用手机号+口令登录，管理员用 admin / admin123" onclick="login()">登录</button>
+  </div>
+  <div class="who" id="who" style="display:none">
+    <span id="whoText"></span>
+    <button class="ghost" data-tip="退出当前账号" onclick="logout()">退出</button>
+  </div>
+</header>
+
+<div class="demo-banner">
+  <b>在线演示版</b>：本页是纯前端演示，数据保存在你自己的浏览器里（localStorage），
+  可以随意下单、接单、改计价规则，不会影响任何人；刷新页面数据仍在。
+  <button class="ghost" data-tip="清空浏览器里的演示数据，恢复初始示例数据"
+          onclick="resetDemo()">重置演示数据</button>
+  <a class="ghost link" href="../">← 返回个人主页</a>
+</div>
+<main>
+  <div id="tip" class="tip">提示：乘客 13800000001 / 123456，司机 13900000001 / 123456，管理员 admin / admin123</div>
+
+  <!-- ======================= 使用教程 ======================= -->
+  <section id="panel-guide" class="panel">
+    <div class="hero">
+      <div class="hero-text">
+        <h1>城市网约车平台 · 使用教程</h1>
+        <p class="hero-sub">一个基于 MySQL + Java 前后端的网约车模拟系统：乘客下单、平台派单、司机接单执行行程，
+          系统按里程与时长自动计费，每一步状态都会留痕。按角色登录后即可在“工作台”里操作。</p>
+        <div class="hero-actions">
+          <button class="primary" data-tip="用下方的演示账号登录后进入工作台"
+                  onclick="focusLogin()">开始使用</button>
+          <button class="ghost" data-tip="跳到订单状态流转说明" onclick="jumpTo('flowCard')">查看订单流程</button>
+        </div>
+      </div>
+      <ul class="kpis">
+        <li><b id="kpiPassengers">–</b><span>注册乘客</span></li>
+        <li><b id="kpiDrivers">–</b><span>签约司机</span></li>
+        <li><b id="kpiOrders">–</b><span>累计订单</span></li>
+        <li><b id="kpiRevenue">–</b><span>累计营收(元)</span></li>
+        <li><b id="kpiOnline">–</b><span>在线司机</span></li>
+        <li><b id="kpiDone">–</b><span>完成订单</span></li>
+      </ul>
+    </div>
+
+    <div class="grid2">
+      <div class="card" id="startCard">
+        <h3>① 四步上手</h3>
+        <ol class="steps">
+          <li><span class="dot">1</span>
+            <div><b>选择身份登录</b><p>乘客用手机号、司机用手机号、管理员用 admin 登录，演示账号见右侧。</p></div></li>
+          <li><span class="dot">2</span>
+            <div><b>乘客叫车</b><p>在乘客端选择上车地点与目的地，点“立即叫车”，订单进入平台派单池（待派单）。</p></div></li>
+          <li><span class="dot">3</span>
+            <div><b>司机接单并执行</b><p>司机上线后在派单池接单，依次点“已到达”“开始行程”，到达目的地后“完成计费”。</p></div></li>
+          <li><span class="dot">4</span>
+            <div><b>自动结算与评价</b><p>系统按当前计价规则算出车费并累加司机业绩；乘客可在“我的行程”里评价本次服务。</p></div></li>
+        </ol>
+      </div>
+
+      <div class="card" id="accountCard">
+        <h3>② 演示账号</h3>
+        <table class="mini">
+          <thead><tr><th>角色</th><th>账号</th><th>口令</th><th>可做什么</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge">乘客</span></td><td>13800000001</td><td>123456</td><td>下单、查看/取消行程、评价</td></tr>
+            <tr><td><span class="badge">司机</span></td><td>13900000001</td><td>123456</td><td>上下线、接单、行程操作、看收入</td></tr>
+            <tr><td><span class="badge">管理员</span></td><td>admin</td><td>admin123</td><td>订单、司机、车辆、计价规则、统计</td></tr>
+          </tbody>
+        </table>
+        <p class="muted">小贴士：按钮上停留 0.1 秒会弹出气泡说明；窗口较窄时表格在卡片内左右滚动，操作列固定在右侧。</p>
+      </div>
+    </div>
+
+    <div class="card" id="flowCard">
+      <h3>③ 订单状态流转</h3>
+      <div class="flow">
+        <span class="chip wait" data-tip="乘客刚下单，等待司机接单">待派单 WAIT</span>
+        <i>→</i>
+        <span class="chip accept" data-tip="司机已接单，正在前往上车点">已接单 ACCEPT</span>
+        <i>→</i>
+        <span class="chip arrive" data-tip="司机已到达上车点">已到达 ARRIVE</span>
+        <i>→</i>
+        <span class="chip trip" data-tip="乘客已上车，开始计时计程">行程中 ONTRIP</span>
+        <i>→</i>
+        <span class="chip done" data-tip="到达目的地，系统按规则自动结算">已完成 DONE</span>
+      </div>
+      <p class="muted">任何未开始的环节都可以取消（变为 CANCEL）；状态只能按箭头方向流转，数据库触发器会拒绝倒流与非法
+        跳转，“已完成 / 已取消”的订单不能再改状态。</p>
+      <div class="rules">
+        <div class="rule"><b>接单条件</b><span>司机在线 + 车辆运营 + 该司机没有进行中的订单，三条同时满足才能接单</span></div>
+        <div class="rule"><b>状态留痕</b><span>每次状态变化都写入 order_status_log，记录操作者（乘客/司机/系统）与时间</span></div>
+        <div class="rule"><b>并发安全</b><span>接单用事务 + 行锁（FOR UPDATE），两个司机同时点接单也只会有一个成功</span></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card" id="fareCard">
+        <h3>④ 计价规则</h3>
+        <p class="formula">车费 = 起步价 ＋ max(里程 − 包含里程, 0) × 每公里单价 ＋ 时长 × 每分钟单价
+          （不低于最低消费）</p>
+        <table class="mini" id="fareTable">
+          <thead><tr><th>规则</th><th>起步价</th><th>含公里</th><th>元/公里</th><th>元/分钟</th><th>最低消费</th></tr></thead>
+          <tbody><tr><td colspan="6" class="muted">加载中…</td></tr></tbody>
+        </table>
+        <p class="muted">订单完成时会把当时生效的规则快照写进订单，之后调整规则不会改变历史账单。</p>
+      </div>
+
+      <div class="card" id="faqCard">
+        <h3>⑤ 常见问题</h3>
+        <details open><summary>为什么司机接不了单？</summary>
+          <p>依次检查：司机是否已“上线接单”、名下车辆是否为“运营”状态、该司机是否还有 已接单/已到达/行程中 的订单。</p></details>
+        <details><summary>完成行程时提示“必须给出里程与时长”？</summary>
+          <p>计费需要里程（公里）与时长（分钟）两个输入，请先在“我的行程”上方填写，再点“完成计费”。</p></details>
+        <details><summary>为什么车费和我按里程估的不一样？</summary>
+          <p>车费包含时长费与起步价，并且有最低消费；具体公式见左侧“计价规则”，实际取当前生效的那一条规则。</p></details>
+        <details><summary>订单为什么不能取消了？</summary>
+          <p>只有待派单、已接单、已到达的订单可以取消；行程中、已完成、已取消的订单不能再改。</p></details>
+        <details><summary>换个账号演示数据会乱吗？</summary>
+          <p>不会。乘客只能看到自己的订单，司机只能看到派单池与自己的行程，管理员看到全部，数据范围由视图与账号权限控制。</p></details>
+        <details><summary>按钮上的气泡怎么出来的？</summary>
+          <p>鼠标在按钮上停留约 0.1 秒即弹出；键盘 Tab 聚焦也会显示，空间不足时气泡自动翻到按钮下方。</p></details>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>⑥ 界面小贴士</h3>
+      <div class="tips-grid">
+        <div class="tipitem"><span class="ico">💡</span><div><b>按钮动效</b><p>悬停上浮、按下缩放并带一圈涟漪，操作有即时反馈。</p></div></div>
+        <div class="tipitem"><span class="ico">💬</span><div><b>悬停气泡</b><p>每个按钮都有说明气泡，不用猜按钮是做什么的。</p></div></div>
+        <div class="tipitem"><span class="ico">📊</span><div><b>实时统计</b><p>管理端“运营统计”按天汇总订单量、营收与司机排行。</p></div></div>
+        <div class="tipitem"><span class="ico">🔐</span><div><b>角色权限</b><p>三类账号权限不同，口令以 SHA-256 摘要保存，不存明文。</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 乘客端 ===================== -->
+  <section id="panel-passenger" class="panel" style="display:none">
+    <h2>乘客端</h2>
+    <div class="card">
+      <div class="row">
+        <label>上车地点</label>
+        <select id="origin"></select>
+        <label>目的地</label>
+        <select id="dest"></select>
+        <button class="primary" data-tip="提交出行需求，进入平台派单池" onclick="createOrder()">立即叫车</button>
+        <span class="muted" id="pBalance"></span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>我的行程 <button class="ghost" data-tip="重新从数据库读取最新状态" onclick="loadPassengerOrders()">刷新</button></h3>
+      <table id="pOrders"><thead></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <!-- ===================== 司机端 ===================== -->
+  <section id="panel-driver" class="panel" style="display:none">
+    <h2>司机端</h2>
+    <div class="card">
+      <div class="row">
+        <span id="dInfo" class="strong"></span>
+        <button class="primary" data-tip="上线后进入派单池，可以接单" onclick="setOnline(1)">上线接单</button>
+        <button class="ghost" data-tip="收车后不再接收新订单" onclick="setOnline(0)">收车下线</button>
+        <button class="ghost" data-tip="刷新司机信息、派单池与收入" onclick="loadDriver()">刷新</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>平台派单池</h3>
+      <table id="waitOrders"><thead></thead><tbody></tbody></table>
+    </div>
+    <div class="card">
+      <h3>我的行程</h3>
+      <div class="row">
+        <label>里程(km)</label><input id="km" value="8.5" style="width:80px">
+        <label>时长(min)</label><input id="minutes" value="22" style="width:80px">
+        <span class="muted">选中行程后：到达 → 开始 → 完成计费</span>
+      </div>
+      <table id="dOrders"><thead></thead><tbody></tbody></table>
+    </div>
+    <div class="card">
+      <h3>我的收入</h3>
+      <table id="income"><thead></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <!-- ===================== 管理端 ===================== -->
+  <section id="panel-admin" class="panel" style="display:none">
+    <h2>管理端</h2>
+    <div class="tabs">
+      <button class="tab active" onclick="adminTab('orders', this)">订单管理</button>
+      <button class="tab" onclick="adminTab('stats', this)">运营统计</button>
+      <button class="tab" onclick="adminTab('drivers', this)">司机管理</button>
+      <button class="tab" onclick="adminTab('vehicles', this)">车辆管理</button>
+      <button class="tab" onclick="adminTab('rules', this)">计价规则</button>
+    </div>
+
+    <div id="admin-orders" class="card">
+      <div class="row">
+        <select id="statusFilter" data-tip="按订单状态过滤列表">
+          <option>全部</option><option>待派单</option><option>已接单</option>
+          <option>已到达</option><option>行程中</option><option>已完成</option><option>已取消</option>
+        </select>
+        <button class="primary" data-tip="按订单状态筛选（全部/待派单/已接单…）" onclick="loadAdminOrders()">筛选</button>
+        <span class="muted">选中“待派单/已接单/已到达”的订单可以由平台取消</span>
+      </div>
+      <table id="adminOrders"><thead></thead><tbody></tbody></table>
+    </div>
+
+    <div id="admin-stats" class="card" style="display:none">
+      <h3>每日运营统计</h3>
+      <table id="daily"><thead></thead><tbody></tbody></table>
+      <h3>司机业绩排行</h3>
+      <table id="rank"><thead></thead><tbody></tbody></table>
+    </div>
+
+    <div id="admin-drivers" class="card" style="display:none">
+      <div class="row">
+        <input id="ndName" placeholder="姓名" value="王师傅" style="width:100px">
+        <input id="ndPhone" placeholder="手机号" value="13900000099" style="width:130px">
+        <input id="ndLicense" placeholder="驾驶证号" value="610100199001019999" style="width:190px">
+        <button class="primary" data-tip="新车默认口令 123456，状态正常、未上线" onclick="addDriver()">新增司机</button>
+      </div>
+      <table id="drivers"><thead></thead><tbody></tbody></table>
+    </div>
+
+    <div id="admin-vehicles" class="card" style="display:none">
+      <div class="row">
+        <input id="nvPlate" placeholder="车牌号" value="陕A10009" style="width:110px">
+        <input id="nvModel" placeholder="车型" value="比亚迪 海豚" style="width:140px">
+        <input id="nvDriver" placeholder="所属司机ID" value="1" style="width:100px">
+        <button class="primary" data-tip="车辆默认 4 座经济型，运营状态为正常" onclick="addVehicle()">新增车辆</button>
+      </div>
+      <table id="vehicles"><thead></thead><tbody></tbody></table>
+    </div>
+
+    <div id="admin-rules" class="card" style="display:none">
+      <div class="row">
+        <input id="nrName" placeholder="规则名称" value="夜间计价2026" style="width:140px">
+        <input id="nrBase" placeholder="起步价" value="12" style="width:80px">
+        <input id="nrKm" placeholder="含公里" value="3" style="width:80px">
+        <input id="nrPerKm" placeholder="元/公里" value="3" style="width:80px">
+        <input id="nrPerMin" placeholder="元/分钟" value="0.6" style="width:90px">
+        <input id="nrMin" placeholder="最低消费" value="12" style="width:90px">
+        <button class="primary" data-tip="新规则立即生效，订单完成时按当前规则计费" onclick="addRule()">新增规则</button>
+      </div>
+      <table id="rules"><thead></thead><tbody></tbody></table>
+    </div>
+  </section>
+</main>
+
+<footer>
+  城市网约车平台 · 数据库原理实验八（打车系统）　技术栈：MySQL 8.0 + Java 17（JDK HttpServer + JDBC）+ HTML/CSS/JavaScript　
+  业务规则由约束、触发器与存储过程保证
+</footer>
+
+<script src="mock.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
